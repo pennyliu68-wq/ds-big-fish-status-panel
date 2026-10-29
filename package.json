@@ -1,6 +1,6 @@
 {
   "name": "dsh-paofu-console",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "状态台：给 DeepSeek Harness 配的本地状态面板（单页，自带数据服务，零依赖，不调用模型）",
   "license": "MIT",

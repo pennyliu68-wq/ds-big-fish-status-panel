@@ -853,7 +853,7 @@ window.paintHdr=paintHdr;
         for(var i=0;i<fs.length;i++){
           var f=fs[i];
           try{
-            var r=await fetch('/__paofu__/api/meme/upload?name='+encodeURIComponent(f.name),{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});
+            var r=await fetch('__paofu__/api/meme/upload?name='+encodeURIComponent(f.name),{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});
             if(r.ok)ok+=1;
           }catch(e){}
           imp.textContent='上传中 '+(i+1)+'/'+fs.length;
@@ -871,7 +871,7 @@ window.paintHdr=paintHdr;
       var name=del.dataset.name;
       del.textContent='…';
       try{
-        var r=await fetch('/__paofu__/api/meme/delete?name='+encodeURIComponent(name),{method:'POST'});
+        var r=await fetch('__paofu__/api/meme/delete?name='+encodeURIComponent(name),{method:'POST'});
         if(r.ok){if(window.load)load();return}
       }catch(err){}
       del.textContent='✕';del.classList.remove('arm');
@@ -934,7 +934,7 @@ document.addEventListener('click',async function(e){
   var orig=b.textContent;
   b.textContent='⟳ 录入中…';
   try{
-    var r=await fetch('/__paofu__/api/refresh?scope=all',{method:'POST'});
+    var r=await fetch('__paofu__/api/refresh?scope=all',{method:'POST'});
     if(!r.ok)throw new Error('HTTP '+r.status);
     var t=new Date();window.__lastSync=t.toTimeString().slice(0,8);
     if(note)note.textContent='最后更新 '+window.__lastSync;
@@ -1551,13 +1551,13 @@ async function load(){
   var snaps=[];
   if(!loadingSnap){
     loadingSnap=true;
-    snaps.push(fetchTo('/__paofu__/api/snapshot',12000).then(function(d){return {k:'snap',d:d}})
+    snaps.push(fetchTo('__paofu__/api/snapshot',12000).then(function(d){return {k:'snap',d:d}})
       .catch(function(){return null}).then(function(x){loadingSnap=false;return x}));
   }else{
     snaps.push(new Promise(function(r){setTimeout(function(){r(null)},15000)}));
   }
-  snaps.push(fetchTo('/__paofu__/data/usage-live.json',12000).then(function(d){return {k:'usage',d:d}}).catch(function(){return null}));
-  snaps.push(fetchTo('/__paofu__/data/memory.json',12000).then(function(d){return {k:'mem',d:d}}).catch(function(){return null}));
+  snaps.push(fetchTo('__paofu__/data/usage-live.json',12000).then(function(d){return {k:'usage',d:d}}).catch(function(){return null}));
+  snaps.push(fetchTo('__paofu__/data/memory.json',12000).then(function(d){return {k:'mem',d:d}}).catch(function(){return null}));
   var got=await Promise.all(snaps);
   got.forEach(function(x){
     if(!x)return;
@@ -1565,9 +1565,22 @@ async function load(){
     else if(x.k==='usage'&&x.d){USAGE=x.d}
     else if(x.k==='mem'&&x.d){MEM=x.d}
   });
-  try{render()}catch(e){}
+  try{render()}catch(e){window.__lastRenderError=e}
 }
-load();setInterval(load,60000);
+window.__loadTrace=[];
+setInterval(async function(){
+  try{
+    window.__loadTrace.push('tick '+new Date().toISOString().slice(11,19));
+    await load();
+    window.__loadTrace.push('  DATA='+(DATA?'有':'空')+(window.__lastRenderError?(' render错:'+String(window.__lastRenderError.message).slice(0,40)):''));
+    window.__loadTrace=window.__loadTrace.slice(-8);
+  }catch(e){ window.__loadTrace.push('  load 抛: '+e.name+': '+String(e.message).slice(0,60)); }
+},60000);
+load().then(function(){
+  window.__loadTrace.push('init DATA='+(DATA?'有':'空'));
+}).catch(function(e){
+  window.__loadTrace.push('init 抛: '+e.name+': '+String(e.message).slice(0,60));
+});
 
 /* ==== 一键刷新：跑一遍导出链（官方余额 → 用量 → 记忆），再重新拉数据重绘 ==== */
 (function(){
@@ -1584,7 +1597,7 @@ load();setInterval(load,60000);
       var tm=setTimeout(function(){ctl.abort()},40000);
       var r;
       try{
-        r=await fetch('/__paofu__/api/refresh',{method:'POST',signal:ctl.signal});
+        r=await fetch('__paofu__/api/refresh',{method:'POST',signal:ctl.signal});
       }finally{clearTimeout(tm)}
       if(!r.ok)throw new Error('HTTP '+r.status);
       await r.json().catch(function(){return null});
@@ -1627,7 +1640,7 @@ load();setInterval(load,60000);
   async function live(){
     if(busy||document.hidden)return;busy=true;
     try{
-      var r=await fetch('/__paofu__/api/snapshot?_='+Date.now(),{cache:'no-store'});
+      var r=await fetch('__paofu__/api/snapshot?_='+Date.now(),{cache:'no-store'});
       if(!r.ok)return;
       var n=await r.json();
       if(!n||!n.conversations)return;
@@ -1660,7 +1673,7 @@ setInterval(function(){
 /* 只刷快照（便宜、10ms 级），让名字/在线/未读/在做啥不跟着 30 秒走 */
 setInterval(function(){
   if(typeof fetchTo!=='function')return;
-  fetchTo('/__paofu__/api/snapshot',10000).then(function(d){
+  fetchTo('__paofu__/api/snapshot',10000).then(function(d){
     if(!d||!d.ok)return;
     DATA=d;
     if(typeof window.paintHdr==='function'){try{window.paintHdr()}catch(e){}}
@@ -2131,7 +2144,7 @@ setInterval(function(){
     showLast();
     document.addEventListener('click',function(e){
       var bu=e.target.closest('#balUpd');
-      if(bu){bu.textContent='⟳ 更新中…';fetch('/__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(){location.reload()}).catch(function(){bu.textContent='⟳ 更新失败'});return}
+      if(bu){bu.textContent='⟳ 更新中…';fetch('__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(){location.reload()}).catch(function(){bu.textContent='⟳ 更新失败'});return}
       var pill=e.target.closest('#tUpd');
       if(!pill)return;
       e.stopPropagation();
@@ -2144,7 +2157,7 @@ setInterval(function(){
     });
     function doRefresh(){
       updNow.disabled=true;updNow.textContent='更新中…';dot(null);
-      fetch('/__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(j){
+      fetch('__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(j){
         updNow.disabled=false;updNow.textContent='立即更新全部';
         if(j&&j.ok){try{localStorage.setItem(LAST_KEY,String(Date.now()))}catch(e){}dot(true);showLast();
           setTimeout(function(){location.reload()},600);}
@@ -2167,7 +2180,7 @@ setInterval(function(){
       showNext();
       if(sec>0){
         autoTimer=setInterval(function(){
-          fetch('/__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(j){
+          fetch('__paofu__/api/refresh',{method:'POST'}).then(function(r){return r.json()}).then(function(j){
             if(j&&j.ok){try{localStorage.setItem(LAST_KEY,String(Date.now()))}catch(e){}showLast();}
           }).catch(function(){});
         },Math.max(15,sec)*1000);
@@ -2270,7 +2283,8 @@ setInterval(function(){
     };
 
     // 桥接状态探测
-    var EPS=[['状态台',0,'/__paofu__/api/snapshot']];
+    // port 为 null 的走同源相对地址（状态台就挂在 DSH 同一个域名下，不用拼端口）
+    var EPS=[['状态台',null,'__paofu__/api/snapshot']];
     var pop=document.getElementById('bridgePop'), list=document.getElementById('bpList');
     document.getElementById('tBridge').onclick=function(){
       pop.classList.toggle('on');
@@ -2281,12 +2295,14 @@ setInterval(function(){
       if(!e.target.closest('#bridgePop')&&!e.target.closest('#tBridge'))pop.classList.remove('on');
     });
     function probe(){
-      list.innerHTML=EPS.map(function(e){return '<div class="bp-it" data-k="'+e[0]+'"><span>'+e[0]+' <span style="color:#5f6d82;font-size:10px">:'+e[1]+'</span></span><i style="color:#8a99b0">检测中</i></div>'}).join('')
+      list.innerHTML=EPS.map(function(e){return '<div class="bp-it" data-k="'+e[0]+'"><span>'+e[0]+' <span style="color:#5f6d82;font-size:10px">'+(e[1]==null?'同源':(':'+e[1]))+'</span></span><i style="color:#8a99b0">检测中</i></div>'}).join('')
         +'';
       var ok=0;
       EPS.forEach(function(e){
         var ctl=new AbortController();var to=setTimeout(function(){ctl.abort()},1800);
-        fetch('http://127.0.0.1:'+e[1]+e[2],{mode:'no-cors',signal:ctl.signal}).then(function(){
+        // port 为 null 就用相对地址，交给浏览器按当前页面同源去请求
+        var u=(e[1]==null)?e[2]:('http://127.0.0.1:'+e[1]+e[2]);
+        fetch(u,{mode:(e[1]==null?'same-origin':'no-cors'),cache:'no-store',signal:ctl.signal}).then(function(){
           clearTimeout(to);ok++;mark(e[0],true);
           if(e[0]==='桥接')setPill(ok>0);
         }).catch(function(){clearTimeout(to);mark(e[0],false)});
