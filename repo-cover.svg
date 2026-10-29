@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#040b0a"/>
+      <stop offset="0.55" stop-color="#071513"/>
+      <stop offset="1" stop-color="#050d0c"/>
+    </linearGradient>
+    <radialGradient id="g1" cx="0.12" cy="-0.05" r="0.75">
+      <stop offset="0" stop-color="#5ff0c4" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#5ff0c4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="1" cy="0.08" r="0.6">
+      <stop offset="0" stop-color="#7fb6ff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#7fb6ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5ff0c4" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#5ff0c4" stop-opacity="0.02"/>
+    </linearGradient>
+    <style>
+      .h1{font-size:52px;font-weight:700;fill:#eaf7f3;letter-spacing:1px}
+      .sub{font-size:20px;fill:#8faea6}
+      .k{font-size:15px;fill:#9fbcb4}
+      .chip{font-size:14px;fill:#c9ffe9}
+      .mono{font-family:Consolas, Menlo, monospace;font-size:14px;fill:#7ef0d0}
+      .dim{fill:#6d8a82}
+    </style>
+  </defs>
+
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect width="1200" height="750" fill="url(#g1)"/>
+  <rect width="1200" height="750" fill="url(#g2)"/>
+  <g stroke="#5ff0c4" stroke-opacity="0.055" stroke-width="1">
+    <!-- 网格 -->
+    <path d="M0 44H1200M0 88H1200M0 132H1200M0 176H1200M0 220H1200M0 264H1200M0 308H1200M0 352H1200M0 396H1200M0 440H1200M0 484H1200M0 528H1200M0 572H1200M0 616H1200M0 660H1200M0 704H1200"/>
+    <path d="M44 0V750M88 0V750M132 0V750M176 0V750M220 0V750M264 0V750M308 0V750M352 0V750M396 0V750M440 0V750M484 0V750M528 0V750M572 0V750M616 0V750M660 0V750M704 0V750M748 0V750M792 0V750M836 0V750M880 0V750M924 0V750M968 0V750M1012 0V750M1056 0V750M1100 0V750M1144 0V750M1188 0V750"/>
+  </g>
+
+  <!-- 左上角标题 -->
+  <g transform="translate(64,86)">
+    <circle cx="7" cy="7" r="7" fill="#5ff0c4"/>
+    <circle cx="7" cy="7" r="13" fill="none" stroke="#5ff0c4" stroke-opacity="0.35"/>
+    <text x="34" y="14" class="h1" font-size="46">状态台</text>
+    <text x="36" y="56" font-size="19" fill="#8faea6" letter-spacing="3">DSH PAOFU CONSOLE</text>
+    <text x="36" y="94" font-size="16" fill="#6d8a82">给 DeepSeek Harness 的本地状态面板 · 插件版</text>
+  </g>
+
+  <!-- 右侧数据卡片 -->
+  <g transform="translate(700,64)">
+    <rect width="440" height="196" rx="16" fill="#07141200"/>
+    <rect width="440" height="196" rx="16" fill="#061210" fill-opacity="0.86" stroke="#5ff0c4" stroke-opacity="0.22"/>
+    <text x="26" y="38" font-size="14" fill="#6d8a82" letter-spacing="2">LIVE · 实时</text>
+    <rect x="356" y="22" width="60" height="22" rx="11" fill="#5ff0c4" fill-opacity="0.12" stroke="#5ff0c4" stroke-opacity="0.4"/>
+    <text x="368" y="38" font-size="12" fill="#8ff0d0">在线</text>
+
+    <g>
+      <text x="26" y="82" font-size="13" fill="#6d8a82">未读</text>
+      <text x="392" y="84" font-size="24" font-weight="700" fill="#eaf7f3" text-anchor="end">3</text>
+      <line x1="26" y1="100" x2="414" y2="100" stroke="#5ff0c4" stroke-opacity="0.1"/>
+      <text x="26" y="128" font-size="13" fill="#6d8a82">命中缓存</text>
+      <text x="392" y="130" font-size="24" font-weight="700" fill="#eaf7f3" text-anchor="end">98.6%</text>
+      <line x1="26" y1="146" x2="414" y2="146" stroke="#5ff0c4" stroke-opacity="0.1"/>
+      <text x="26" y="174" font-size="13" fill="#6d8a82">最近有人说话</text>
+      <text x="392" y="176" font-size="20" font-weight="600" fill="#7ef0d0" text-anchor="end">2 分钟前</text>
+    </g>
+  </g>
+
+  <!-- 页面缩略 -->
+  <g transform="translate(64,246)">
+    <rect width="1072" height="452" rx="18" fill="url(#shot)" stroke="#5ff0c4" stroke-opacity="0.28"/>
+    <!-- 顶部条 -->
+    <rect x="0" y="0" width="1072" height="58" rx="18" fill="#06120f" fill-opacity="0.9"/>
+    <rect x="0" y="40" width="1072" height="18" fill="#06120f" fill-opacity="0.9"/>
+    <circle cx="40" cy="29" r="15" fill="#0d2420" stroke="#5ff0c4" stroke-opacity="0.5"/>
+    <text x="40" y="34" font-size="14" text-anchor="middle" fill="#7ef0d0">鱼</text>
+    <text x="68" y="26" font-size="15" fill="#eaf7f3" font-weight="600">状态台</text>
+    <rect x="122" y="16" width="40" height="18" rx="9" fill="#5ff0c4" fill-opacity="0.14" stroke="#5ff0c4" stroke-opacity="0.35"/>
+    <text x="142" y="29" font-size="10" text-anchor="middle" fill="#8ff0d0">在线</text>
+    <rect x="170" y="16" width="40" height="18" rx="9" fill="#7fb6ff" fill-opacity="0.12" stroke="#7fb6ff" stroke-opacity="0.3"/>
+    <text x="190" y="29" font-size="10" text-anchor="middle" fill="#9fc6ff">LIVE</text>
+    <text x="228" y="28" font-size="12" fill="#6d8a82">05:02:31</text>
+    <text x="292" y="28" font-size="12" fill="#6d8a82">待着，没什么事</text>
+    <rect x="960" y="15" width="86" height="26" rx="13" fill="#5ff0c4" fill-opacity="0.1" stroke="#5ff0c4" stroke-opacity="0.32"/>
+    <text x="1003" y="33" font-size="12" text-anchor="middle" fill="#8ff0d0">⟳ 刷新</text>
+
+    <!-- 左侧导航 -->
+    <rect x="16" y="72" width="196" height="364" rx="14" fill="#061210" fill-opacity="0.7" stroke="#5ff0c4" stroke-opacity="0.12"/>
+    <text x="34" y="98" font-size="11" fill="#5d7a72" letter-spacing="1.5">PROFILE · 人物</text>
+    <rect x="26" y="108" width="176" height="26" rx="8" fill="#5ff0c4" fill-opacity="0.12"/>
+    <text x="38" y="126" font-size="12.5" fill="#a9ffe2">▣ 概览</text>
+    <text x="38" y="154" font-size="12.5" fill="#8aa79f">▤ 人格档案</text>
+    <text x="38" y="182" font-size="12.5" fill="#8aa79f">❖ 她的人生</text>
+    <text x="38" y="210" font-size="12.5" fill="#8aa79f">◈ 她的样子</text>
+    <text x="38" y="238" font-size="12.5" fill="#8aa79f">○ 身体状态</text>
+
+    <text x="34" y="272" font-size="11" fill="#5d7a72" letter-spacing="1.5">MOOD · 情绪与关系</text>
+    <text x="38" y="296" font-size="12.5" fill="#8aa79f">♡ 情绪动态</text>
+    <text x="38" y="324" font-size="12.5" fill="#8aa79f">◎ 记忆</text>
+    <text x="38" y="352" font-size="12.5" fill="#8aa79f">▭ 承诺账本</text>
+    <text x="38" y="380" font-size="12.5" fill="#8aa79f">✧ 自由度</text>
+    <text x="38" y="408" font-size="12.5" fill="#8aa79f">⇡ 分享系统</text>
+
+    <!-- 主内容：指标卡 -->
+    <g transform="translate(228,72)">
+      <rect width="270" height="104" rx="14" fill="#061210" fill-opacity="0.82" stroke="#5ff0c4" stroke-opacity="0.16"/>
+      <text x="20" y="26" font-size="11" fill="#5d7a72" letter-spacing="1">字数</text>
+      <circle cx="52" cy="66" r="20" fill="none" stroke="#123028" stroke-width="6"/>
+      <circle cx="52" cy="66" r="20" fill="none" stroke="#5ff0c4" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="126" stroke-dashoffset="42" transform="rotate(-90 52 66)"/>
+      <text x="92" y="74" font-size="30" font-weight="700" fill="#eaf7f3">305</text>
+
+      <g transform="translate(286,0)">
+        <rect width="270" height="104" rx="14" fill="#061210" fill-opacity="0.82" stroke="#5ff0c4" stroke-opacity="0.16"/>
+        <text x="20" y="26" font-size="11" fill="#5d7a72" letter-spacing="1">段落</text>
+        <circle cx="52" cy="66" r="20" fill="none" stroke="#123028" stroke-width="6"/>
+        <circle cx="52" cy="66" r="20" fill="none" stroke="#7fb6ff" stroke-width="6" stroke-linecap="round"
+                stroke-dasharray="126" stroke-dashoffset="60" transform="rotate(-90 52 66)"/>
+        <text x="92" y="74" font-size="30" font-weight="700" fill="#eaf7f3">6</text>
+      </g>
+
+      <g transform="translate(572,0)">
+        <rect width="252" height="104" rx="14" fill="#061210" fill-opacity="0.82" stroke="#5ff0c4" stroke-opacity="0.16"/>
+        <text x="20" y="26" font-size="11" fill="#5d7a72" letter-spacing="1">在线</text>
+        <circle cx="34" cy="60" r="5" fill="#5ff0c4"/>
+        <text x="52" y="66" font-size="22" font-weight="600" fill="#7ef0d0">在线</text>
+        <text x="20" y="90" font-size="11" fill="#6d8a82">桥接已连上 · 只读</text>
+      </g>
+    </g>
+
+    <!-- 主内容：小说卡 -->
+    <g transform="translate(228,190)">
+      <rect width="828" height="216" rx="14" fill="#061210" fill-opacity="0.82" stroke="#5ff0c4" stroke-opacity="0.16"/>
+      <text x="22" y="30" font-size="13" fill="#cfe8e1" font-weight="600">她的小说 · 示例</text>
+      <line x1="22" y1="44" x2="806" y2="44" stroke="#5ff0c4" stroke-opacity="0.12"/>
+      <text x="22" y="70" font-size="12" fill="#8aa79f">　　海是黑的那天，她第一次听见陆地上的声音。</text>
+      <text x="22" y="94" font-size="12" fill="#8aa79f">　　不是风。是有人在很远的地方笑，笑完又叹气。</text>
+      <text x="22" y="118" font-size="12" fill="#8aa79f">　　她把耳朵贴在玻璃上，听见那人说：再坚持一下。</text>
+      <text x="22" y="152" font-size="12" fill="#6d8a82">　　她有了名字以后，学会的第一件事是分辨早晚。</text>
+      <text x="22" y="176" font-size="12" fill="#6d8a82">　　……</text>
+      <text x="22" y="200" font-size="11" fill="#4f6a63">（示例数据，改 data/novel.md 就是你的）</text>
+    </g>
+
+    <!-- 主内容：三个小卡 -->
+    <g transform="translate(228,422)">
+      <rect width="266" height="14" rx="7" fill="#5ff0c4" fill-opacity="0.16"/>
+      <g transform="translate(0,26)">
+        <rect width="126" height="12" rx="6" fill="#5ff0c4" fill-opacity="0.1"/>
+        <rect x="140" y="0" width="90" height="12" rx="6" fill="#7fb6ff" fill-opacity="0.1"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- 特性行 -->
+  <g transform="translate(64,716)">
+    <text x="0" y="0" font-size="15" font-weight="600" fill="#7ef0d0">零依赖</text>
+    <text x="82" y="0" font-size="14" fill="#48635c">·</text>
+    <text x="102" y="0" font-size="15" fill="#9dbdb5">不调用模型</text>
+    <text x="212" y="0" font-size="14" fill="#48635c">·</text>
+    <text x="232" y="0" font-size="15" fill="#9dbdb5">只绑本机回环</text>
+    <text x="352" y="0" font-size="14" fill="#48635c">·</text>
+    <text x="372" y="0" font-size="15" fill="#9dbdb5">不碰外部网络</text>
+    <text x="1072" y="0" font-size="13" fill="#4f6a63" text-anchor="end">MIT · v1.0.0 · DSH 插件</text>
+  </g>
+</svg>

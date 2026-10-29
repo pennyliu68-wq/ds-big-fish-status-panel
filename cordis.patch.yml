@@ -1,0 +1,6 @@
+# 状态台：一条宿主行，把面板挂到 DSH 的 webServer 上。
+# 页面在 /dsh-paofu-console/，数据由插件自己起在本机回环上的一个端口（默认 9896）。
+- insert:
+    - id: paofu-console
+      name: dsh-paofu-console
+      config: {}

@@ -1,0 +1,37 @@
+{
+  "name": "dsh-paofu-console",
+  "version": "1.0.0",
+  "private": false,
+  "description": "状态台：给 DeepSeek Harness 配的本地状态面板（单页，自带数据服务，零依赖，不调用模型）",
+  "license": "MIT",
+  "type": "module",
+  "main": "./lib/index.mjs",
+  "exports": {
+    ".": "./lib/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "web",
+    "data",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "接上桥接.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "console",
+    "dashboard"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

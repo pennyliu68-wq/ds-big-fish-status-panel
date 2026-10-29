@@ -1,0 +1,5 @@
+[
+  {"name":"聊天","score":60,"state":"练","note":"示例数据，改 data/skills.json 换成你自己的"},
+  {"name":"记性","score":55,"state":"练","note":"日记加检索，翻得到以前说过的话"},
+  {"name":"状态台","score":70,"state":"好","note":"就是你在看的这个页面"}
+]
