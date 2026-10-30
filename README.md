@@ -5,7 +5,7 @@
 在线状态、未读数、用量余额、日记、记忆、承诺账本、小说、系统拓扑、运行状况，全都摊平在一页里，一眼扫完——不用翻会话、翻日志、翻表格。
 
 ```bash
-dsh plugin install dsh-paofu-console
+dsh plugin add dsh-paofu-console
 ```
 
 本地运行、零依赖、不调模型，数据不外传。

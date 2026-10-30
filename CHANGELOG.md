@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.2 — 2026-10-30
+
+- 修正安装命令：`dsh plugin install` → **`dsh plugin add dsh-paofu-console`**（DSH 的插件安装入口就是 `plugin add`）
+
 ## 1.1.1 — 2026-10-30
 
 **只改文档**，代码与 1.1.0 一致。
