@@ -783,7 +783,59 @@ body.mobile #pet,body.mobile #petMenu{display:none!important}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const t=ms=>ms?new Date(ms).toLocaleString('zh-CN',{hour12:false}):'—';
-const brandName=()=>{try{return localStorage.getItem('paofu.name')||'状态台'}catch(e){return '状态台'}};
+const brandName=()=>{try{return (window.__ME&&window.__ME.name)||localStorage.getItem('paofu.name')||'状态台'}catch(e){return '状态台'}};
+
+/* ==== 自定义设置：存服务端，跟端口无关 ==== */
+/* localStorage 按来源隔离，而 DSH 每次重启端口都会变，
+   所以名字/头像/页签改名只放 localStorage 一定会丢。这里统一走 /api/me。 */
+window.__ME=null;
+function meLoad(){
+  return fetch('__paofu__/api/me',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+    window.__ME=(j&&j.data)||{};
+    /* 老版本存在浏览器里的自定义，第一次跑时迁到服务端 */
+    try{
+      var localName=localStorage.getItem('paofu.name')||'';
+      var localAva=localStorage.getItem('paofu.avatar')||'';
+      var localNav=localStorage.getItem('paofu.navNames')||'';
+      var localHide=localStorage.getItem('paofu.hidden')||'';
+      var p={};
+      if(localName&&!window.__ME.name)p.name=localName;
+      if(localAva&&!window.__ME.avatar)p.avatar=localAva;
+      if(localNav&&!window.__ME.navNames){try{p.navNames=JSON.parse(localNav)}catch(e){}}
+      if(localHide&&!window.__ME.hidden){try{p.hidden=JSON.parse(localHide)}catch(e){}}
+      if(Object.keys(p).length)meSave(p);
+    }catch(e){}
+    return window.__ME;
+  }).catch(function(){window.__ME={};return window.__ME});
+}
+function meSave(patch){
+  if(!window.__ME)window.__ME={};
+  for(var k in patch){if(Object.prototype.hasOwnProperty.call(patch,k))window.__ME[k]=patch[k]}
+  return fetch('__paofu__/api/me',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(patch)})
+    .then(function(r){return r.json()}).then(function(j){if(j&&j.data)window.__ME=j.data})
+    .catch(function(){});
+}
+
+/* ==== 主题 / 背景 / 音乐：同样存服务端 ==== */
+/* 音频本体走 /api/track/<id>（原始字节），其余走 /api/assets（小 JSON）。
+   理由：一个背景视频几 MB，塞进 JSON 里每次改名都要重传一遍，太浪费。 */
+window.__ASSETS=null;
+/* 各段脚本都要等这两个加载完再决定画什么，先占个位 */
+window.__ASSETS_READY=Promise.resolve(null);
+function assetsLoad(){
+  return fetch('__paofu__/api/assets',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+    window.__ASSETS=(j&&j.data)||null;return window.__ASSETS;
+  }).catch(function(){window.__ASSETS=null;return null});
+}
+function assetsSave(patch){
+  return fetch('__paofu__/api/assets',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(patch)})
+    .then(function(r){return r.json()}).then(function(j){if(j&&j.data)window.__ASSETS=j.data}).catch(function(){});
+}
+function trackUpload(id,name,blob){
+  return fetch('__paofu__/api/track/'+encodeURIComponent(id)+'?name='+encodeURIComponent(name||''),{method:'PUT',headers:{'content-type':blob.type||'audio/mpeg'},body:blob})
+    .then(function(r){return r.json()});
+}
+function trackDelete(id){return fetch('__paofu__/api/track/'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){return r.json()})}
 
 /* ==== 顶部人物条：实时绘制（秒级） ==== */
 var HDRSTATE=null;
@@ -911,6 +963,7 @@ document.addEventListener('dblclick',function(e){
       delete m[id];
     }
     try{localStorage.setItem('paofu.navNames',JSON.stringify(m))}catch(e){}
+    meSave({navNames:m});
     if(window.buildNav)buildNav();
     if(window.render)render();
   }
@@ -947,12 +1000,12 @@ document.addEventListener('click',async function(e){
   setTimeout(function(){if(b)b.textContent=orig},2600);
 });var HDRLAST=0,HDROK=0;
 
-function hiddenKeys(){try{return JSON.parse(localStorage.getItem('paofu.hidden')||'[]')}catch(e){return []}}
+function hiddenKeys(){try{return (window.__ME&&window.__ME.hidden)||JSON.parse(localStorage.getItem('paofu.hidden')||'[]')}catch(e){return []}}
 function isHidden(k){return hiddenKeys().indexOf(k)>=0}
-function hideConv(k){var h=hiddenKeys();if(h.indexOf(k)<0){h.push(k);try{localStorage.setItem('paofu.hidden',JSON.stringify(h))}catch(e){}}}
-function unhideAll(){try{localStorage.removeItem('paofu.hidden')}catch(e){}}
-const avatarHTML=()=>{try{var a=localStorage.getItem('paofu.avatar');return a?'<img src="'+a+'" alt="">':'🐟'}catch(e){return '🐟'}};
-function navNames(){try{return JSON.parse(localStorage.getItem('paofu.navNames')||'{}')}catch(e){return {}}}
+function hideConv(k){var h=hiddenKeys();if(h.indexOf(k)<0){h.push(k);try{localStorage.setItem('paofu.hidden',JSON.stringify(h))}catch(e){}meSave({hidden:h})}}
+function unhideAll(){try{localStorage.removeItem('paofu.hidden')}catch(e){}meSave({hidden:[]})}
+const avatarHTML=()=>{try{var a=(window.__ME&&window.__ME.avatar)||localStorage.getItem('paofu.avatar');return a?'<img src="'+a+'" alt="">':'🐟'}catch(e){return '🐟'}};
+function navNames(){try{return (window.__ME&&window.__ME.navNames)||JSON.parse(localStorage.getItem('paofu.navNames')||'{}')}catch(e){return {}}}
 function navLabel(id,def){var m=navNames();return m[id]||def}
 function navPlain(id,def){var t=navLabel(id,def);return t.replace(/^[^\u4e00-\u9fa5A-Za-z0-9]+\s*/,'')||t}
 const NAV=[
@@ -1353,7 +1406,7 @@ function render(){
         +'<div style="margin-top:14px;display:flex;align-items:center;gap:12px"><span class="bx" id="lifeUpd">⟳ 重新录入</span><span class="dim" id="lifeNote" style="font-size:11px">最后更新 '+(window.__lastSync||'—')+'</span></div>'
       +'</div>';
     return}
-  if(CUR==='look'||CUR==='wall'){const ms=DATA.memesList||[];B.innerHTML='<div class="card"><div class="k">表情库</div><div class="viz"><div class="vz-kv"><span class="lb">COUNT</span><span class="vv">'+ms.length+'</span></div>'+segsV(ms.length,110,14)+'<div class="dim" style="font-size:11px;margin-left:auto">共 '+(a.memes||0)+' 张</div></div><div class="mem-bar"><span class="bx" id="memImport">＋ 导入图片</span><span class="dim" style="font-size:11px">支持 png / jpg / gif / webp，单张 ≤ 8MB；删掉的会进 _trash，不会真消失</span><input type="file" id="memFile" accept="image/*" multiple hidden></div></div><div class="thumbs">'+ms.map(f=>'<div class="twrap"><img src="/meme/'+encodeURIComponent(f)+'" loading="lazy" alt=""><span class="tdel" data-name="'+esc(f)+'" title="删除">✕</span></div>').join('')+'</div>';return}
+  if(CUR==='look'||CUR==='wall'){const ms=DATA.memesList||[];B.innerHTML='<div class="card"><div class="k">表情库</div><div class="viz"><div class="vz-kv"><span class="lb">COUNT</span><span class="vv">'+ms.length+'</span></div>'+segsV(ms.length,110,14)+'<div class="dim" style="font-size:11px;margin-left:auto">共 '+(a.memes||0)+' 张</div></div><div class="mem-bar"><span class="bx" id="memImport">＋ 导入图片</span><span class="dim" style="font-size:11px">支持 png / jpg / gif / webp，单张 ≤ 8MB；删掉的会进 _trash，不会真消失</span><input type="file" id="memFile" accept="image/*" multiple hidden></div></div><div class="thumbs">'+ms.map(f=>'<div class="twrap"><img src="__paofu__/meme/'+encodeURIComponent(f)+'" loading="lazy" alt=""><span class="tdel" data-name="'+esc(f)+'" title="删除">✕</span></div>').join('')+'</div>';return}
   if(CUR==='body'){const vs=a.voices||0,ms=a.memes||0;const vm=(a.voiceMeta||[]).filter(x=>x.sec);const tot=vm.reduce((p,x)=>p+(x.sec||0),0);const avg=vm.length?tot/vm.length:0;const fmtD=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()};
   const rows=(a.voiceMeta||[]).slice(0,6).map(x=>'<div class="row"><span class="tag">'+esc(x.name.length>22?x.name.slice(0,20)+'…':x.name)+'</span><span class="dim">'+(x.sec==null?'—':x.sec+' 秒')+'</span><span class="dim">'+Math.round((x.bytes||0)/1024)+' KB</span><span class="dim">'+fmtD(x.mtime)+'</span></div>').join('');
   const bars=barsV(vm.slice(0,8).map((x,i)=>({label:(i+1)+'',value:x.sec,max:Math.max(1,...vm.map(y=>y.sec||0)),text:x.sec+'s'})));
@@ -1463,7 +1516,7 @@ function render(){
    +(ds.map(function(d){var b=bad(d.excerpt);var txt=clean(d.excerpt);
       return '<div class="card"><div class="k">'+esc(d.date)+' · '+d.chars+' 字</div>'
        +'<div style="line-height:1.95;margin-bottom:12px'+(b?'':'')+'">'+esc(txt)+(txt.length>=158?'…':'')+'</div>'
-       +(b?'<div class="warnline">这条里有 '+b+' 处字符在写入时就已经坏了（源文件里就是 U+FFFD），面板只能照实显示，修不了。</div>':'')
+       +(b?'<div class="warnline">这条里有 '+b+' 处字符在写入时就已经坏了（源文件里就是 U+FFFD），面板只能照实显示，修不了。桥接那边已经加了闸门，以后带坏字的日记会被直接拒收。</div>':'')
        +segsV(d.chars,mx,16)+'</div>'}).join('')||'<div class="empty">还没有日记</div>')
    +'<div class="card"><div class="k">这本日记</div><div class="dim" style="font-size:11.5px;line-height:1.9">日记存在 <span class="mono" style="display:inline">&lt;桥接&gt;/state/diary/&lt;日期&gt;.md</span>，由它自己写、面板只读。点下面的按钮会重扫一遍目录，不修改原文。</div>'
    +'<div class="mem-bar"><span class="bx" id="diaryUpd">⟳ 更新</span><span class="dim" style="font-size:11px">上次拉取 '+esc(t(DATA.at))+'</span></div></div>';
@@ -1580,6 +1633,25 @@ load().then(function(){
   window.__loadTrace.push('init DATA='+(DATA?'有':'空'));
 }).catch(function(e){
   window.__loadTrace.push('init 抛: '+e.name+': '+String(e.message).slice(0,60));
+});
+/* 自定义设置的合并应用：服务端回来的名字/头像/页签，统一在这里贴回界面 */
+function applyMe(){
+  var me=window.__ME||{};
+  var bn=document.getElementById('brandName');
+  if(bn&&me.name&&bn.textContent!==me.name)bn.textContent=me.name;
+  if(bn&&!me.name&&!bn.textContent)bn.textContent='状态台';
+  var nb=document.querySelector('#hdr .nm');if(nb&&me.name){var f=nb.firstChild;if(f&&f.nodeType===3)f.nodeValue=me.name}
+  var body=document.querySelector('#body .bn');if(body&&me.name){var g=body.firstChild;if(g&&g.nodeType===3)g.nodeValue=me.name}
+  if(me.name)document.title='DS'+me.name+'状态台';
+  var av=document.getElementById('bava');
+  if(av&&me.avatar!==undefined){av.innerHTML=me.avatar?'<img src="'+me.avatar+'" alt="">':'🐟'}
+}
+window.__ASSETS_READY=meLoad().then(function(){
+  return assetsLoad().catch(function(){return null});
+}).then(function(){
+  applyMe();
+  try{if(window.buildNav)buildNav()}catch(e){}
+  try{render()}catch(e){window.__lastRenderError=e}
 });
 
 /* ==== 一键刷新：跑一遍导出链（官方余额 → 用量 → 记忆），再重新拉数据重绘 ==== */
@@ -1715,7 +1787,7 @@ setInterval(function(){
         <button class="cfg-btn" id="cfg-muz" style="margin-top:10px">顶部能量柱 · 开</button>
         <div class="bgm-name" id="bgm-name">还没有选歌</div>
         <div class="bgm-list" id="bgm-list"></div>
-        <div class="cfg-note">音乐已存在本机浏览器里，刷新和重开都会自己回来；浏览器要求“先点一下”才出声，所以自动续播会被拦时按钮会显示 ▶ 播放。</div>
+        <div class="cfg-note">音频存在本机服务里，换端口、重启都还在。点列表里的一首就换过去，行尾 × 删掉这首歌。浏览器要求“先点一下”才出声，所以自动续播被拦时按钮会显示 ▶ 播放。</div>
       </div>
       <div class="cfg-s">
         <h4>背景主题</h4>
@@ -1750,6 +1822,16 @@ setInterval(function(){
   function paintAuto(){var b=document.getElementById('cfg-auto');if(!b)return;var p=phaseNow();b.textContent='自动模式 · '+p.n;b.classList.toggle('on',!!cfg.auto)}
   var cfg=Object.assign({},DEF);
   try{Object.assign(cfg,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+  /* 服务端存的主题优先：端口变了 localStorage 就空了，那份才是真正的自定义 */
+  (function(){
+    var t=(window.__ASSETS&&window.__ASSETS.theme);
+    if(t&&typeof t==='object'){
+      ['mint','sky'].forEach(function(k){if(typeof t[k]==='string')cfg[k]=t[k]});
+      ['glow','blur','rad','vol','zoom'].forEach(function(k){if(typeof t[k]==='number')cfg[k]=t[k]});
+      if(typeof t.auto==='boolean')cfg.auto=t.auto;
+      if(typeof t.grad==='boolean')cfg.grad=t.grad;
+    }
+  })();
   if(typeof cfg.auto!=='boolean')cfg.auto=false;
   if(typeof cfg.grad!=='boolean')cfg.grad=false;
   var st=document.createElement('style');st.id='cfg-vars';document.head.appendChild(st);
@@ -1762,6 +1844,13 @@ setInterval(function(){
       +'.app{zoom:'+(cfg.zoom/100)+'!important}';
     var gp=document.getElementById('grad-prev');if(gp)gp.style.background='linear-gradient(90deg,'+cfg.mint+','+cfg.sky+')';
     try{localStorage.setItem(KEY,JSON.stringify(cfg))}catch(e){}
+    /* 同步到服务端（去抖：拖滑块时别每一下都发请求） */
+    try{
+      clearTimeout(window.__themeW);
+      window.__themeW=setTimeout(function(){
+        assetsSave({theme:{mint:cfg.mint,sky:cfg.sky,glow:cfg.glow,blur:cfg.blur,rad:cfg.rad,vol:cfg.vol,zoom:cfg.zoom,auto:!!cfg.auto,grad:!!cfg.grad}});
+      },600);
+    }catch(e){}
   }
   function syncInputs(){
     ['mint','sky'].forEach(function(k){var el=document.getElementById('c-'+k);if(el)el.value=cfg[k]});
@@ -1883,7 +1972,7 @@ setInterval(function(){
   function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn);else fn()}
   ready(function(){
     var el=document.getElementById('brandName');if(!el)return;
-    var saved='';try{saved=localStorage.getItem(KEY)||''}catch(e){}
+    var saved=(window.__ME&&window.__ME.name)||'';if(!saved){try{saved=localStorage.getItem(KEY)||''}catch(e){}}
     if(saved)el.textContent=saved;
     el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();el.blur()}});
     el.addEventListener('blur',function(){
@@ -1891,6 +1980,7 @@ setInterval(function(){
       if(!v){v='状态台'}
       el.textContent=v;
       try{localStorage.setItem(KEY,v)}catch(e){}
+      meSave({name:v});
       document.title='DS'+v+'状态台';
       var bn=document.querySelector('#body .bn');
       if(bn&&bn.firstChild&&bn.firstChild.nodeType===3)bn.firstChild.nodeValue=v;
@@ -1906,11 +1996,35 @@ setInterval(function(){
   function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn);else fn()}
   function openDB(){return new Promise(function(res,rej){var r=indexedDB.open('paofu-bgm',1);r.onupgradeneeded=function(){r.result.createObjectStore('tracks',{keyPath:'id'})};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
   function tx(mode,fn){return openDB().then(function(db){return new Promise(function(res,rej){var t=db.transaction('tracks',mode),st=t.objectStore('tracks');var q=fn(st);t.oncomplete=function(){res(q&&q.result)};t.onerror=function(){rej(t.error)}})})}
-  function allTracks(){return tx('readonly',function(st){return st.getAll()})}
+  function allTracks(){
+    /* 服务端有曲目就用服务端那份（跟端口无关），否则退回浏览器 IndexedDB */
+    var srv=(window.__ASSETS&&window.__ASSETS.tracks);
+    if(Array.isArray(srv)&&srv.length){
+      return Promise.resolve(srv.filter(function(t){return t&&t.has}).map(function(t){return {id:t.id,name:t.name,at:t.at,remote:true}}));
+    }
+    return tx('readonly',function(st){return st.getAll()});
+  }
+  /* 列表专用：服务端有的列出来，本机 IndexedDB 里还有的也列出来，
+     两边按 id 去重。服务端那份标 remote，换端口也点得动。 */
+  function listTracks(){
+    var srv=((window.__ASSETS&&window.__ASSETS.tracks)||[]).filter(function(t){return t&&t.has})
+      .map(function(t){return {id:t.id,name:t.name||t.id,at:t.at||0,remote:true}});
+    return tx('readonly',function(st){return st.getAll()}).catch(function(){return []}).then(function(local){
+      local=Array.isArray(local)?local:[];
+      var seen={};
+      srv.forEach(function(t){seen[t.id]=1});
+      var extra=local.filter(function(t){return t&&!seen[t.id]}).map(function(t){
+        return {id:t.id,name:t.name||t.id,at:t.at||0,remote:false};
+      });
+      return srv.concat(extra);
+    });
+  }
   function putTrack(rec){return tx('readwrite',function(st){return st.put(rec)})}
   function delTrack(id){return tx('readwrite',function(st){return st.delete(id)})}
   function fmtNum(n){return n}
-  function setNow(name,id){var n=document.getElementById('bgm-name');if(n)n.textContent=name||'还没有选歌';curId=id||'';try{localStorage.setItem(KEY,curId)}catch(e){}}
+  function setNow(name,id){var n=document.getElementById('bgm-name');if(n)n.textContent=name||'还没有选歌';curId=id||'';try{localStorage.setItem(KEY,curId)}catch(e){}
+    /* 记下当前选的是哪首，下次换端口打开还能接着放 */
+    try{assetsSave({lastTrack:curId})}catch(e){}}
   function stateOf(){return {id:curId,pos:(media&&media.currentTime)||0,playing:!!(media&&!media.paused)}}
   function saveState(){try{localStorage.setItem('paofu.bgmState',JSON.stringify(stateOf()))}catch(e){}}
   function play(id,name,opts){
@@ -1919,7 +2033,8 @@ setInterval(function(){
       var rec=(list||[]).filter(function(x){return x.id===id})[0];
       if(!rec)return;
       if(media){media.pause()}
-      media=new Audio(URL.createObjectURL(rec.blob));
+      /* 服务端曲目直接给 URL；本地曲目还是老办法用 blob URL */
+      media=new Audio(rec.remote?('__paofu__/api/track/'+encodeURIComponent(rec.id)):URL.createObjectURL(rec.blob));
       media.loop=true;
       var v=document.getElementById('s-vol');
       media.volume=(v?+v.value:45)/100;
@@ -1938,18 +2053,35 @@ setInterval(function(){
   }
   function renderList(){
     var box=document.getElementById('bgm-list');if(!box)return;
-    allTracks().then(function(list){
-      list=(list||[]).sort(function(a,b){return b.at-a.at});
-      if(!list.length){box.innerHTML='<div class="bgm-empty">还没有上传过音频</div>';return}
+    /* 列表每次都要真读一遍：服务端那份和浏览器那份合并显示，
+       换歌靠点列表行，删歌靠行尾的 ×。 */
+    listTracks().then(function(list){
+      list=(list||[]).sort(function(a,b){return (b.at||0)-(a.at||0)});
+      if(!list.length){box.innerHTML='<div class="bgm-empty">还没有上传过音频，点上面的「选择音频」加一首</div>';return}
       box.innerHTML=list.map(function(r){
-        return '<div class="bgm-item'+(r.id===curId?' on':'')+'" data-id="'+r.id+'"><span>'+r.name.replace(/[<>&]/g,'')+'</span><b data-del="'+r.id+'" title="移除">×</b></div>';
+        return '<div class="bgm-item'+(r.id===curId?' on':'')+'" data-id="'+r.id+'">'
+          +'<span title="'+(r.remote?'点一下换成这首':'点一下换成这首')+'">'+(r.id===curId?'▸ ':'')+r.name.replace(/[<>&]/g,'')+(r.remote?'':' <i style="opacity:.5">本机</i>')+'</span>'
+          +'<b data-play="'+r.id+'" title="换成这首">▶</b>'
+          +'<b data-del="'+r.id+'" title="移除这首">×</b></div>';
       }).join('');
       box.onclick=function(ev){
         var d=ev.target.closest('[data-del]');
-        if(d){ev.stopPropagation();delTrack(d.dataset.del).then(function(){
-          if(d.dataset.del===curId){if(media){media.pause();media=null}setNow('','')}
+        if(d){ev.stopPropagation();
+          var delId=d.dataset.del;
+          /* 两边都删：服务端那份和浏览器 IndexedDB 那份 */
+          delTrack(delId).catch(function(){});
+          trackDelete(delId).catch(function(){});
+          if(delId===curId){if(media){media.pause();media=null}setNow('','')}
+          /* 服务端列表立刻维护一份，免得刷新前 renderList 又把它读回来 */
+          try{
+            if(window.__ASSETS&&Array.isArray(window.__ASSETS.tracks)){
+              window.__ASSETS.tracks=window.__ASSETS.tracks.filter(function(t){return t.id!==delId});
+            }
+          }catch(e){}
           renderList();
-        });return}
+          return}
+        var pv=ev.target.closest('[data-play]');
+        if(pv){ev.stopPropagation();play(pv.dataset.play);return}
         var it=ev.target.closest('.bgm-item');if(!it)return;
         play(it.dataset.id);
       };
@@ -1961,7 +2093,9 @@ setInterval(function(){
       var f=this.files[0];if(!f)return;
       if(f.size>40*1024*1024){alert('音频太大了（>40MB）');return}
       var rec={id:'t'+Date.now(),name:f.name,blob:f,at:Date.now()};
-      putTrack(rec).then(function(){return play(rec.id)}).catch(function(e){console.warn(e)});
+      /* 两头都存：浏览器 IndexedDB 管这次用，服务端管重启后还在 */
+      var upload=trackUpload(rec.id,f.name,f).catch(function(){});
+      putTrack(rec).then(function(){return upload}).then(function(){renderList();return play(rec.id)}).catch(function(e){console.warn(e)});
       this.value='';
     });
     if(tg)tg.onclick=function(){
@@ -1972,10 +2106,25 @@ setInterval(function(){
     if(vol)vol.addEventListener('input',function(){if(media)media.volume=(+this.value)/100});
     var saved='', st=null;
     try{saved=localStorage.getItem(KEY)||'';st=JSON.parse(localStorage.getItem('paofu.bgmState')||'null')}catch(e){}
-    if(saved){
+    /* 服务端记着上次听的是哪首：端口变了也要接着放 */
+    var srvBg=(window.__ASSETS&&window.__ASSETS.bg)||null;
+    var svTracks=(window.__ASSETS&&window.__ASSETS.tracks)||null;
+    if(Array.isArray(svTracks)&&svTracks.length){
+      if(!saved){
+        var last=window.__ASSETS&&window.__ASSETS.lastTrack;
+        if(last)saved=last;
+      }
+    }
+    /* 等 /api/assets 回来再决定放哪首 —— 它可能带来服务端的曲目列表 */
+    (window.__ASSETS_READY||Promise.resolve(null)).then(function(){
+      if(!saved){
+        var last=window.__ASSETS&&window.__ASSETS.lastTrack;
+        if(last)saved=last;
+      }
+      if(!saved)return;
       var wantPlay=!!(st&&st.id===saved&&st.playing);
       play(saved,null,{pos:(st&&st.id===saved)?st.pos:0,playing:wantPlay});
-    }
+    });
     setInterval(saveState,4000);
     window.addEventListener('beforeunload',saveState);
     document.addEventListener('visibilitychange',function(){if(document.hidden)saveState()});
@@ -2111,6 +2260,7 @@ setInterval(function(){
       g.drawImage(img,(S/2+st.x*k)-w/2,(S/2+st.y*k)-h/2,w,h);
       var url=c.toDataURL('image/jpeg',0.88);
       try{localStorage.setItem('paofu.avatar',url)}catch(err){}
+      meSave({avatar:url});
       var av=document.getElementById('bava');if(av)av.innerHTML='<img src="'+url+'" alt="">';
       modal.classList.remove('on');
       toast('已更新头像');
@@ -2119,6 +2269,7 @@ setInterval(function(){
       if(e.target.closest('#bava')){
         e.preventDefault();
         try{localStorage.removeItem('paofu.avatar')}catch(err){}
+        meSave({avatar:''});
         var av=document.getElementById('bava');if(av)av.textContent='🐟';
         toast('已恢复默认头像');
       }
@@ -2371,8 +2522,13 @@ setInterval(function(){
 
   var layer=document.getElementById('bgmedia'),img=document.getElementById('bgImg'),vid=document.getElementById('bgVid');
   var nameEl=document.getElementById('bg-name2');
-  var st={id:'',name:'',op:58,blur:0};
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+  var st={id:'',name:'',op:58,blur:0,data:'',type:''};
+  /* 背景也存服务端：localStorage 按来源隔离，换端口就丢，
+     而背景恰恰是最舍不得重设的东西。 */
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify({id:st.id,name:st.name,op:st.op,blur:st.blur}))}catch(e){}
+    assetsSave({bg:{src:st.data||'',name:st.name||'',type:st.type||'',op:st.op,blur:st.blur}});
+  }
   function applyStyle(){
     document.documentElement.style.setProperty('--bgm-op',(st.op/100).toFixed(2));
     document.documentElement.style.setProperty('--bgm-blur',st.blur+'px');
@@ -2391,8 +2547,15 @@ setInterval(function(){
   function restore(){
     var raw=null;try{raw=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
     if(raw&&typeof raw==='object'){st.op=raw.op!=null?raw.op:58;st.blur=raw.blur||0;st.id=raw.id||'';st.name=raw.name||''}
+    /* 服务端那份优先：它不受端口影响 */
+    var bg=(window.__ASSETS&&window.__ASSETS.bg);
+    if(bg&&typeof bg==='object'){
+      st.op=bg.op!=null?bg.op:st.op;st.blur=bg.blur||0;st.name=bg.name||'';st.type=bg.type||'';
+      if(bg.src){st.data=bg.src;st.id=''}
+      else{st.data=''}
+    }
     applyStyle();
-    if(st.data){show({data:st.data,name:st.name,type:'image'})}
+    if(st.data){show({data:st.data,name:st.name,type:st.type||(/^video\//.test(st.type)?'video/mp4':'image/jpeg')})}
     else if(st.id)get(st.id).then(function(rec){if(rec)show(rec)}).catch(function(){});
     else if(st.name)nameEl.textContent=st.name;
   }
@@ -2403,28 +2566,31 @@ setInterval(function(){
       var f=inp.files&&inp.files[0];if(!f)return;
       if(f.size>200*1024*1024){alert('文件太大，建议 200MB 以内');return}
       var isImg=/^image\//.test(f.type||'');
-      // 小图直接转 dataURL 存 localStorage：刷新后无需再走 IndexedDB，最稳
+      // 图片转成 dataURL，同时存服务端 —— 端口变了也不用重选
       if(isImg&&f.size<2.2*1024*1024){
         var fr=new FileReader();
         fr.onload=function(){
-          st.data=fr.result;st.id='';st.name=f.name;save();
+          st.data=fr.result;st.id='';st.name=f.name;st.type=f.type||'';save();
           show({data:fr.result,name:f.name,type:f.type});
         };
         fr.readAsDataURL(f);
         return;
       }
+      // 视频 / 大图：本体太大就不上服务端了，仍走 IndexedDB，
+      // 但要跟用户说清楚 —— 换端口后它确实会没，这是上限，不是 bug。
       var id='t'+Date.now();
       var rec={id:id,name:f.name,type:f.type||'',blob:f,at:Date.now()};
       put(rec).then(function(){
         if(st.id&&st.id!==id)del(st.id).catch(function(){});
-        st.id=id;st.data='';st.name=f.name;save();show(rec);
+        st.id=id;st.data='';st.name=f.name;st.type=f.type||'';save();show(rec);
+        try{alert('视频背景比较大（只存浏览器本地），换端口后可能要重新选一次')}catch(e){}
       }).catch(function(){alert('保存失败：这个文件可能太大，或浏览器禁用了本地存储')});
     };
     inp.click();
   }
   try{window.__themeReload=restore}catch(e){}
   ready(function(){
-    restore();
+    (window.__ASSETS_READY||Promise.resolve(null)).then(restore);
     var a=document.getElementById('bgPickImg'),b=document.getElementById('bgPickVid'),c=document.getElementById('bgClear');
     if(!a)return;
     a.onclick=function(){pick('image')};

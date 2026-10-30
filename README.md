@@ -76,7 +76,7 @@ node -v
 ```json
 {
   "dependencies": {
-    "dsh-paofu-console": "1.0.2"
+    "dsh-paofu-console": "1.0.5"
   },
   "dsh": {
     "profile": {
