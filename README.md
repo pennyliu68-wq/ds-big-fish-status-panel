@@ -1,4 +1,22 @@
-# 状态台（dsh-paofu-console）
+# 大肥鱼状态台（dsh-paofu-console）
+
+给 DeepSeek Harness 配的一块本地面板：装成插件、跟 DSH 共用地址，打开就能看。自定义主题、BGM、主题色会随音乐律动渐变；同步适配手机界面，布局和玩法都能自己调。
+
+在线状态、未读数、用量余额、日记、记忆、承诺账本、小说、系统拓扑、运行状况，全都摊平在一页里，一眼扫完——不用翻会话、翻日志、翻表格。
+
+```bash
+dsh plugin install dsh-paofu-console
+```
+
+本地运行、零依赖、不调模型，数据不外传。
+
+| 渠道 | 地址 |
+| --- | --- |
+| GitHub | https://github.com/pennyliu68-wq/ds-big-fish-status-panel |
+| npm | https://www.npmjs.com/package/dsh-paofu-console |
+| Gitee | https://gitee.com/the-concept-of-esuns-world/ds-big-fish-status-panel |
+
+---
 
 **DeepSeek Harness 插件版**。装上以后 DSH 里多一个地址：
 
